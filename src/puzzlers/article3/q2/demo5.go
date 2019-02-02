@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"puzzlers/article3/q2/lib"
+	"puzzlers/article3/q2/libiary"
 )
 
 var name string
