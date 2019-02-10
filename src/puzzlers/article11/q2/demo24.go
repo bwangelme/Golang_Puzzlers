@@ -41,14 +41,23 @@ func example2() {
 	intChan := make(chan int, 1)
 	// 一秒后关闭通道。
 	time.AfterFunc(time.Second, func() {
+		// r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		// intChan <- r.Int()
+		rand.Seed(time.Now().Unix())
+		intChan <- rand.Int()
+	})
+	time.AfterFunc(2*time.Second, func() {
 		close(intChan)
 	})
-	select {
-	case _, ok := <-intChan:
-		if !ok {
-			fmt.Println("The candidate case is closed.")
-			break
+L:
+	for {
+		select {
+		case val, ok := <-intChan:
+			if !ok {
+				fmt.Println("The candidate case is closed.")
+				break L
+			}
+			fmt.Println("The candidate case is selected.", val)
 		}
-		fmt.Println("The candidate case is selected.")
 	}
 }

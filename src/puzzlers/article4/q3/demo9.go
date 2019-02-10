@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	var err error
+	var n int
 	n, err := io.WriteString(os.Stdout, "Hello, everyone!\n") // 这里对`err`进行了重声明。
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
