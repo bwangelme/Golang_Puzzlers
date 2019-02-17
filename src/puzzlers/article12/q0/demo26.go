@@ -1,11 +1,12 @@
 package main
 
-import "fmt"
+import "log"
 
-type Printer func(contents string) (n int, err error)
+type Printer func(string) (int, error)
 
 func printToStd(contents string) (bytesNum int, err error) {
-	return fmt.Println(contents)
+	log.Println(contents)
+	return len(contents), nil
 }
 
 func main() {

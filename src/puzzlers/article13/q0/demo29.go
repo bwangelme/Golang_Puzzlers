@@ -32,6 +32,10 @@ func (a Animal) String() string {
 		a.scientificName, a.AnimalCategory)
 }
 
+func (self Animal) Category() string {
+	return self.AnimalCategory.String()
+}
+
 // 示例3。
 type Cat struct {
 	name string
@@ -55,6 +59,7 @@ func main() {
 		AnimalCategory: category,
 	}
 	fmt.Printf("The animal: %s\n", animal)
+	fmt.Printf("The animal category method: %s\n", animal.Category())
 
 	// 示例3。
 	cat := Cat{

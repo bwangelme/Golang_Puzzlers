@@ -42,6 +42,13 @@ func (cat Cat) String() string {
 }
 
 func main() {
+	pointer_cat := &Cat{
+		name:           "little pig",
+		scientificName: "American Shorthair",
+		category:       "cat",
+	}
+	fmt.Println(pointer_cat.Category())
+
 	cat := New("little pig", "American Shorthair", "cat")
 	cat.SetName("monster") // (&cat).SetName("monster")
 	fmt.Printf("The cat: %s\n", cat)

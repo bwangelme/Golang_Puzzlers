@@ -3,6 +3,9 @@ package main
 import "fmt"
 
 func main() {
+	// 数组是值类型，会在函数参数及返回值中进行深层复制
+	// 切片是引用类型，会在函数参数及返回值中进行浅层复制
+
 	// 示例1。
 	array1 := [3]string{"a", "b", "c"}
 	fmt.Printf("The array: %v\n", array1)
