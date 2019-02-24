@@ -27,6 +27,7 @@ func (dog Dog) Category() string {
 func main() {
 	// 示例1。
 	dog := Dog{"little pig"}
+	dog.SetName("love dog")
 	_, ok := interface{}(dog).(Pet)
 	fmt.Printf("Dog implements interface Pet: %v\n", ok)
 	_, ok = interface{}(&dog).(Pet)

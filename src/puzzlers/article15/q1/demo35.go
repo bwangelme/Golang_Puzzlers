@@ -1,18 +1,27 @@
 package main
 
+import (
+	"fmt"
+	"reflect"
+)
+
+//Named interface
 type Named interface {
 	// Name 用于获取名字。
 	Name() string
 }
 
+//Dog struct
 type Dog struct {
 	name string
 }
 
+//SetName function
 func (dog *Dog) SetName(name string) {
 	dog.name = name
 }
 
+//Name function
 func (dog Dog) Name() string {
 	return dog.name
 }
@@ -24,6 +33,7 @@ func main() {
 	//_ = &(123) // 基本类型值的字面量不可寻址。
 
 	var str = "abc"
+	_ = &[]string{"a", "b"}[1] // !!切片字面量的索引值是可以取地址的
 	_ = str
 	//_ = &(str[0]) // 对字符串变量的索引结果值不可寻址。
 	//_ = &(str[0:2]) // 对字符串变量的切片结果值不可寻址。
@@ -37,7 +47,8 @@ func main() {
 
 	//_ = &([3]int{1, 2, 3}[0]) // 对数组字面量的索引结果值不可寻址。
 	//_ = &([3]int{1, 2, 3}[0:2]) // 对数组字面量的切片结果值不可寻址。
-	_ = &([]int{1, 2, 3}[0]) // 对切片字面量的索引结果值却是可寻址的。
+	addr := &([]int{1, 2, 3}[0]) // 对切片字面量的索引结果值却是可寻址的。
+	fmt.Println(addr, reflect.TypeOf(addr))
 	//_ = &([]int{1, 2, 3}[0:2]) // 对切片字面量的切片结果值不可寻址。
 	//_ = &(map[int]string{1: "a"}[0]) // 对字典字面量的索引结果值不可寻址。
 

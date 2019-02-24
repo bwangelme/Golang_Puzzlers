@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"unsafe"
 )
 
@@ -18,6 +19,11 @@ func (dog Dog) Name() string {
 }
 
 func main() {
+	err := os.ErrClosed
+	errP := &err
+	errPointer := uintptr(unsafe.Pointer(errP))
+	fmt.Println(errPointer)
+
 	// 示例1。
 	dog := Dog{"little pig"}
 	dogP := &dog
@@ -38,5 +44,4 @@ func main() {
 	numP := (*int)(unsafe.Pointer(namePtr))
 	num := *numP
 	fmt.Printf("This is an unexpected number: %d\n", num)
-
 }
