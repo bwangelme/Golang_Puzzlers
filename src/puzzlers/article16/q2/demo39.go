@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// 办法1。
-	//time.Sleep(time.Millisecond * 500)
+	// time.Sleep(time.Millisecond * 500)
 
 	// 办法2。
 	for j := 0; j < num; j++ {

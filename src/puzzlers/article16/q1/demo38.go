@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
 	for i := 0; i < 10; i++ {
@@ -8,4 +11,17 @@ func main() {
 			fmt.Println(i)
 		}()
 	}
+
+	time.Sleep(3 * time.Second)
 }
+
+// 4
+// 10
+// 10
+// 10
+// 9
+// 10
+// 10
+// 10
+// 10
+// 10
