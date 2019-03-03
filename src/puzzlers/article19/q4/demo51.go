@@ -1,11 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/kataras/iris/core/errors"
+)
 
 func main() {
 	defer fmt.Println("first defer")
 	for i := 0; i < 3; i++ {
 		defer fmt.Printf("defer in for [%d]\n", i)
 	}
-	defer fmt.Println("last defer")
+	defer func() {
+		fmt.Println("last defer")
+		panic(errors.New("panic in defer"))
+	}()
 }
