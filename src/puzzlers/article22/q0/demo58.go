@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -20,57 +19,96 @@ func init() {
 		"It indicates whether to use a mutex to protect data writing.")
 }
 
+// Buf for string
+type Buf struct {
+	buffer   bytes.Buffer
+	mu       sync.Mutex
+	isLocked bool
+}
+
+// WriteLines func
+func (buf *Buf) WriteLines(lines []string) (int, error) {
+	// 不上锁的情况下，后写入的数据会将之前写入的覆盖掉
+	if buf.isLocked {
+		buf.mu.Lock()
+		defer buf.mu.Unlock()
+	}
+
+	total := 0
+	for _, line := range lines {
+		n, err := buf.buffer.Write([]byte(line))
+		if err != nil {
+			return total, err
+		}
+		total += n
+	}
+
+	return total, nil
+}
+
+// ReadAll Read all data in buffer
+func (buf *Buf) ReadAll() ([]byte, error) {
+	if buf.isLocked {
+		buf.mu.Lock()
+		defer buf.mu.Unlock()
+	}
+
+	data, err := ioutil.ReadAll(&buf.buffer)
+	return data, err
+}
+
+// NewBuf function
+func NewBuf(isLocked bool) *Buf {
+	var buf Buf
+
+	buf.isLocked = isLocked
+
+	return &buf
+}
+
 func main() {
 	flag.Parse()
-	// buffer 代表缓冲区。
-	var buffer bytes.Buffer
 
 	const (
 		max1 = 5  // 代表启用的goroutine的数量。
 		max2 = 10 // 代表每个goroutine需要写入的数据块的数量。
-		max3 = 10 // 代表每个数据块中需要有多少个重复的数字。
+		max3 = 3  // 代表每个数据块中需要有多少个重复的数字。
 	)
 
-	// mu 代表以下流程要使用的互斥锁。
-	var mu sync.Mutex
+	var buf = NewBuf(bool(protecting > 0))
 	// sign 代表信号的通道。
 	sign := make(chan struct{}, max1)
 
 	for i := 1; i <= max1; i++ {
-		go func(id int, writer io.Writer) {
+		go func(id int, buf *Buf) {
 			defer func() {
 				sign <- struct{}{}
 			}()
+			var lines []string
 			for j := 1; j <= max2; j++ {
 				// 准备数据。
-				header := fmt.Sprintf("\n[id: %d, iteration: %d]",
+				// 这里准备的是一行的数据
+				header := fmt.Sprintf("[id: %d, iteration: %d]",
 					id, j)
-				data := fmt.Sprintf(" %d", id*j)
-				// 写入数据。
-				if protecting > 0 {
-					mu.Lock()
-				}
-				_, err := writer.Write([]byte(header))
-				if err != nil {
-					log.Printf("error: %s [%d]", err, id)
-				}
+				body := ""
 				for k := 0; k < max3; k++ {
-					_, err := writer.Write([]byte(data))
-					if err != nil {
-						log.Printf("error: %s [%d]", err, id)
-					}
+					body += fmt.Sprintf(" %d", id*j)
 				}
-				if protecting > 0 {
-					mu.Unlock()
-				}
+				data := header + body + "\n"
+				lines = append(lines, data)
 			}
-		}(i, &buffer)
+			// 写入数据。
+			_, err := buf.WriteLines(lines)
+			if err != nil {
+				log.Printf("error: %s [%d]", err, id)
+			}
+		}(i, buf)
 	}
 
 	for i := 0; i < max1; i++ {
 		<-sign
 	}
-	data, err := ioutil.ReadAll(&buffer)
+	data, err := buf.ReadAll()
 	if err != nil {
 		log.Fatalf("fatal error: %s", err)
 	}
