@@ -90,55 +90,61 @@ func main() {
 	sign := make(chan struct{}, writingConfig.goNum+readingConfig.goNum)
 
 	// 启用多个goroutine对缓冲区进行多次数据写入。
-	for i := 1; i <= writingConfig.goNum; i++ {
-		go func(i int) {
+	for goNum := 0; goNum < writingConfig.goNum; goNum++ {
+		go func(goNum int) {
 			defer func() {
 				sign <- struct{}{}
 			}()
-			for j := 1; j <= writingConfig.number; j++ {
+
+			goID := string(65 + goNum)
+			for num := 1; num <= writingConfig.number; num++ {
 				time.Sleep(writingConfig.interval)
 				data, n, err := writingConfig.handler()
 				if err != nil {
-					log.Printf("writer [%d-%d]: error: %s",
-						i, j, err)
+					log.Printf("writer [%s-%d]: error: %s",
+						goID, num, err)
 					continue
 				}
 				total := writingConfig.count(n)
-				log.Printf("writer [%d-%d]: %s (total: %d)",
-					i, j, data, total)
+				log.Printf("writer [%s-%d-%d]: %s (total: %d)",
+					goID, num, n, data, total)
 			}
-		}(i)
+		}(goNum)
 	}
 
 	// 启用多个goroutine对缓冲区进行多次数据读取。
-	for i := 1; i <= readingConfig.goNum; i++ {
-		go func(i int) {
+	for goNum := 0; goNum < readingConfig.goNum; goNum++ {
+		go func(goNum int) {
 			defer func() {
 				sign <- struct{}{}
 			}()
-			for j := 1; j <= readingConfig.number; j++ {
+
+			goID := string(65 + goNum)
+			for num := 1; num <= readingConfig.number; num++ {
 				time.Sleep(readingConfig.interval)
-				var data string
-				var n int
-				var err error
+				var (
+					data string
+					n    int
+					err  error
+				)
 				for {
 					data, n, err = readingConfig.handler()
 					if err == nil || err != io.EOF {
 						break
 					}
-					// 如果读比写快（读时会发生EOF错误），那就等一会儿再读。
+					//TIPS 如果读比写快（读时会发生EOF错误），那就等一会儿再读。
 					time.Sleep(readingConfig.interval)
 				}
 				if err != nil {
-					log.Printf("reader [%d-%d]: error: %s",
-						i, j, err)
+					log.Printf("reader [%s-%d]: error: %s",
+						goID, num, err)
 					continue
 				}
 				total := readingConfig.count(n)
-				log.Printf("reader [%d-%d]: %s (total: %d)",
-					i, j, data, total)
+				log.Printf("reader [%s-%d-%d]: %s (total: %d)",
+					goID, num, n, data, total)
 			}
-		}(i)
+		}(goNum)
 	}
 
 	// signNumber 代表需要接收的信号的数量。
