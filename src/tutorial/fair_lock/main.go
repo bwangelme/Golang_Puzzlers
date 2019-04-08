@@ -7,24 +7,24 @@ import (
 	"time"
 )
 
-//FailLock 公平锁
-type FailLock struct {
+//FairLock 公平锁
+type FairLock struct {
 	isLocked bool
 	mu       *sync.Mutex
 	signals  []chan struct{}
 }
 
-func NewFailLock() *FailLock {
+func NewFairLock() *FairLock {
 	var signals []chan struct{}
 
-	return &FailLock{
+	return &FairLock{
 		isLocked: false,
 		mu:       new(sync.Mutex),
 		signals:  signals,
 	}
 }
 
-func (fl *FailLock) Lock(signal chan struct{}, id int) {
+func (fl *FairLock) Lock(signal chan struct{}, id int) {
 	fl.mu.Lock()
 	if !fl.isLocked {
 		fl.isLocked = true
@@ -38,7 +38,7 @@ func (fl *FailLock) Lock(signal chan struct{}, id int) {
 	<-signal
 }
 
-func (fl *FailLock) Unlock() {
+func (fl *FairLock) Unlock() {
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
@@ -57,7 +57,7 @@ func (fl *FailLock) Unlock() {
 
 func main() {
 	n := 5
-	lock := NewFailLock()
+	lock := NewFairLock()
 
 	running := make(chan struct{})
 	end := make(chan struct{})
