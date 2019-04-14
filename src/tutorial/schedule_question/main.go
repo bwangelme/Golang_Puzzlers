@@ -10,11 +10,12 @@ func main() {
 	for i := 0; i < threads; i++ {
 		go func() {
 			for {
+				time.Sleep(0)
 				x++
-				//runtime.Gosched()
+				runtime.Gosched()
 			}
 		}()
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 1)
 	fmt.Println("x =", x)
 }

@@ -11,7 +11,7 @@ func main() {
 	// 0代表信箱是空的，1代表信箱是满的。
 	var mailbox uint8
 	// lock 代表信箱上的锁。
-	var lock sync.Mutex
+	var lock sync.RWMutex
 	// sendCond 代表专用于发信的条件变量。
 	sendCond := sync.NewCond(&lock)
 	// recvCond 代表专用于收信的条件变量。

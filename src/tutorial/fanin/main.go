@@ -2,6 +2,11 @@ package main
 
 import "fmt"
 
+var (
+	N = 5
+	M = 5
+)
+
 func gen(v string, times int) <-chan string {
 	ch := make(chan string)
 	go func() {
@@ -28,10 +33,11 @@ func fanIn(times int, inputs []<-chan string) <-chan string {
 }
 
 func main() {
-	times := 10
-	inputs := make([]<-chan string, 0, 3)
-	for _, K := range []string{"A", "B", "C"} {
-		inputs = append(inputs, gen(K, times))
+	times := M
+	inputs := make([]<-chan string, 0, N)
+	for i := 0; i < N; i++ {
+		threadName := string('A' + i)
+		inputs = append(inputs, gen(threadName, times))
 	}
 	for char := range fanIn(times, inputs) {
 		fmt.Println(char)

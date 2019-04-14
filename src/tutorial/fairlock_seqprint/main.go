@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 )
+
+const endNum = 9
 
 type FairLock struct {
 	mu        *sync.Mutex
@@ -55,19 +58,22 @@ var (
 )
 
 func threadPrint(threadNum int, threadName string, mu sync.Locker) {
-	for i < 30 {
+	for i < endNum {
+		fmt.Println("......", threadNum, threadName, "Try Locked")
 		mu.Lock()
-		if i >= 30 {
+		if i >= endNum {
 			mu.Unlock()
 			continue
 		}
 		if i < 3 && i%3 != threadNum {
+			fmt.Println("......", threadNum, threadName, "Unlock")
 			mu.Unlock()
 			continue
 		}
 
 		fmt.Printf("%d: %s\n", i, threadName)
 		i += 1
+		fmt.Println("......", threadNum, threadName, "Worked")
 		mu.Unlock()
 	}
 	end <- struct{}{}
@@ -78,6 +84,7 @@ func main() {
 	names := []string{"A", "B", "C"}
 
 	for idx, name := range names {
+		time.Sleep(time.Second * 1)
 		go threadPrint(idx, name, mu)
 	}
 
