@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 )
 
-const endNum = 9
+const endNum = 30
 
 type FairLock struct {
 	mu        *sync.Mutex
 	cond      *sync.Cond
+	isHold    bool
 	holdCount int
 }
 
@@ -21,6 +21,7 @@ func NewFairLock() sync.Locker {
 
 	return &FairLock{
 		holdCount: 0,
+		isHold:    false,
 		mu:        mu,
 		cond:      cond,
 	}
@@ -30,26 +31,32 @@ func (fl *FairLock) Lock() {
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
-	fl.holdCount++
-	if fl.holdCount == 1 {
+	if !fl.isHold {
+		fl.holdCount++
+		fl.isHold = true
 		return
 	}
 
-	fl.cond.Wait()
+	fl.holdCount++
+	for fl.isHold {
+		fl.cond.Wait()
+	}
+	fl.isHold = true
 }
 
 func (fl *FairLock) Unlock() {
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
-	if fl.holdCount == 0 {
+	if !fl.isHold {
 		log.Fatal("unlock of UnLocked mutex")
 	}
 
-	fl.holdCount--
-	if fl.holdCount != 0 {
+	if fl.holdCount > 1 {
 		fl.cond.Signal()
 	}
+	fl.isHold = false
+	fl.holdCount--
 }
 
 var (
@@ -57,24 +64,21 @@ var (
 	i   int
 )
 
-func threadPrint(threadNum int, threadName string, mu sync.Locker) {
+func threadPrint(threadNum int, threadName string, locker sync.Locker) {
 	for i < endNum {
-		fmt.Println("......", threadNum, threadName, "Try Locked")
-		mu.Lock()
+		locker.Lock()
 		if i >= endNum {
-			mu.Unlock()
+			locker.Unlock()
 			continue
 		}
-		if i < 3 && i%3 != threadNum {
-			fmt.Println("......", threadNum, threadName, "Unlock")
-			mu.Unlock()
+		if i%3 != threadNum {
+			locker.Unlock()
 			continue
 		}
 
 		fmt.Printf("%d: %s\n", i, threadName)
 		i += 1
-		fmt.Println("......", threadNum, threadName, "Worked")
-		mu.Unlock()
+		locker.Unlock()
 	}
 	end <- struct{}{}
 }
@@ -84,7 +88,6 @@ func main() {
 	names := []string{"A", "B", "C"}
 
 	for idx, name := range names {
-		time.Sleep(time.Second * 1)
 		go threadPrint(idx, name, mu)
 	}
 
